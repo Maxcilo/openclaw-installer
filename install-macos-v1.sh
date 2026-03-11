@@ -1,7 +1,7 @@
 #!/bin/bash
-# OpenClaw 一键安装脚本 (macOS) - 改进版
+# OpenClaw 一键安装脚本 (macOS)
 # 作者: @Go8888I
-# 版本: 1.1.0
+# 版本: 1.0.0
 
 set -e
 
@@ -19,21 +19,10 @@ fi
 echo "✅ 检测到 macOS 系统"
 echo ""
 
-# 检查网络连接
-echo "🌐 检查网络连接..."
-if ! curl -s --head --max-time 5 https://brew.sh > /dev/null; then
-    echo "❌ 网络连接失败，请检查网络后重试"
-    exit 1
-fi
-echo "✅ 网络连接正常"
-echo ""
-
 # 1. 检查并安装 Homebrew
-echo "📦 步骤 1/4: 检查 Homebrew..."
+echo "📦 步骤 1/5: 检查 Homebrew..."
 if ! command -v brew &> /dev/null; then
     echo "⏳ 正在安装 Homebrew..."
-    echo "   (首次安装可能需要 10-30 分钟，请耐心等待)"
-    
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
     # 添加 Homebrew 到 PATH
@@ -52,41 +41,23 @@ fi
 echo ""
 
 # 2. 安装 Node.js
-echo "📦 步骤 2/4: 检查 Node.js..."
+echo "📦 步骤 2/5: 检查 Node.js..."
 if ! command -v node &> /dev/null; then
     echo "⏳ 正在安装 Node.js..."
     brew install node
     echo "✅ Node.js 安装完成"
 else
     NODE_VERSION=$(node -v)
-    NODE_MAJOR=$(echo $NODE_VERSION | cut -d'.' -f1 | sed 's/v//')
-    
-    if [ "$NODE_MAJOR" -lt 20 ]; then
-        echo "⚠️  Node.js 版本过低 ($NODE_VERSION)，需要 >= 20.0.0"
-        echo "⏳ 正在升级 Node.js..."
-        brew upgrade node
-        NODE_VERSION=$(node -v)
-        echo "✅ Node.js 升级完成 ($NODE_VERSION)"
-    else
-        echo "✅ Node.js 已安装 ($NODE_VERSION)"
-    fi
+    echo "✅ Node.js 已安装 ($NODE_VERSION)"
 fi
 echo ""
 
 # 3. 安装 pnpm
-echo "📦 步骤 3/4: 检查 pnpm..."
+echo "📦 步骤 3/5: 检查 pnpm..."
 if ! command -v pnpm &> /dev/null; then
     echo "⏳ 正在安装 pnpm..."
     npm install -g pnpm
-    
-    # 验证安装
-    if command -v pnpm &> /dev/null; then
-        PNPM_VERSION=$(pnpm -v)
-        echo "✅ pnpm 安装完成 ($PNPM_VERSION)"
-    else
-        echo "❌ pnpm 安装失败"
-        exit 1
-    fi
+    echo "✅ pnpm 安装完成"
 else
     PNPM_VERSION=$(pnpm -v)
     echo "✅ pnpm 已安装 ($PNPM_VERSION)"
@@ -94,29 +65,22 @@ fi
 echo ""
 
 # 4. 安装 OpenClaw
-echo "📦 步骤 4/4: 安装 OpenClaw..."
+echo "📦 步骤 4/5: 安装 OpenClaw..."
 echo "⏳ 正在安装 openclaw..."
+pnpm install -g openclaw
 
-# 尝试安装
-if pnpm install -g openclaw; then
-    # 验证安装
-    if command -v openclaw &> /dev/null; then
-        OPENCLAW_VERSION=$(openclaw --version 2>/dev/null || echo "unknown")
-        echo "✅ OpenClaw 安装完成 ($OPENCLAW_VERSION)"
-    else
-        echo "❌ OpenClaw 安装失败：命令未找到"
-        echo "   请尝试重启终端后运行: source ~/.zprofile"
-        exit 1
-    fi
+# 检查安装
+if command -v openclaw &> /dev/null; then
+    OPENCLAW_VERSION=$(openclaw --version 2>/dev/null || echo "unknown")
+    echo "✅ OpenClaw 安装完成 ($OPENCLAW_VERSION)"
 else
     echo "❌ OpenClaw 安装失败"
-    echo "   错误信息请查看上方输出"
     exit 1
 fi
 echo ""
 
 # 5. 初始化配置
-echo "📦 初始化配置..."
+echo "📦 步骤 5/5: 初始化配置..."
 echo "⏳ 创建配置目录..."
 mkdir -p ~/.openclaw/workspace
 mkdir -p ~/.openclaw/extensions
@@ -131,8 +95,6 @@ echo "================================"
 echo ""
 echo "📍 安装位置："
 echo "   - OpenClaw: $(which openclaw)"
-echo "   - Node.js: $(which node) ($NODE_VERSION)"
-echo "   - pnpm: $(which pnpm) ($PNPM_VERSION)"
 echo "   - 配置目录: ~/.openclaw/"
 echo "   - 工作目录: ~/.openclaw/workspace/"
 echo ""
@@ -154,7 +116,6 @@ echo ""
 echo "💡 提示："
 echo "   - 如果命令未找到，请重启终端或运行: source ~/.zprofile"
 echo "   - 需要配置 API 密钥，请参考官方文档"
-echo "   - 国内用户建议配置 npm 镜像: npm config set registry https://registry.npmmirror.com"
 echo ""
 echo "🎀 安装脚本由 @Go8888I 制作"
 echo ""
